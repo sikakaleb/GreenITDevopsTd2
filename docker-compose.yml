@@ -1,0 +1,68 @@
+services:
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yaml:/etc/prometheus/prometheus.yml
+      - ./prometheus.rules.yml:/etc/prometheus/prometheus.rules.yml
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+    networks:
+      - monitoring
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    depends_on:
+      - prometheus
+    networks:
+      - monitoring
+
+  node-exporter-8080:
+    image: prom/node-exporter:latest
+    container_name: node-exporter-8080
+    ports:
+      - "8080:9100"
+    command:
+      - "--web.listen-address=:9100"
+    networks:
+      - monitoring
+
+  node-exporter-8081:
+    image: prom/node-exporter:latest
+    container_name: node-exporter-8081
+    ports:
+      - "8081:9100"
+    command:
+      - "--web.listen-address=:9100"
+    networks:
+      - monitoring
+
+  node-exporter-8082:
+    image: prom/node-exporter:latest
+    container_name: node-exporter-8082
+    ports:
+      - "8082:9100"
+    command:
+      - "--web.listen-address=:9100"
+    networks:
+      - monitoring
+
+  data-exporter:
+    build: ./data-exporter
+    container_name: data-exporter
+    ports:
+      - "8000:8000"
+    networks:
+      - monitoring
+
+networks:
+  monitoring:
+    driver: bridge
