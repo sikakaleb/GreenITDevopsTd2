@@ -8,9 +8,6 @@ services:
       - "9090:9090"
     volumes:
       - ./prometheus.yaml:/etc/prometheus/prometheus.yml
-      - ./prometheus.rules.yml:/etc/prometheus/prometheus.rules.yml
-    command:
-      - "--config.file=/etc/prometheus/prometheus.yml"
     networks:
       - monitoring
 
@@ -27,37 +24,68 @@ services:
     networks:
       - monitoring
 
-  mqtt-broker:
-    image: eclipse-mosquitto:latest
-    container_name: mqtt-broker
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: node-exporter
     ports:
-      - "1883:1883"
-      - "9001:9001"
+      - "9100:9100"
+    networks:
+      - monitoring
+
+  postgres:
+    image: postgres:latest
+    container_name: postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: metrics
     volumes:
-      - ./mosquitto.conf:/mosquitto/config/mosquitto.conf
+      - postgres-data:/var/lib/postgresql/data
     networks:
       - monitoring
 
-  http-server:
-    build: ./http-server
-    container_name: http-server
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb
     ports:
-      - "5000:5000"
+      - "27017:27017"
+    volumes:
+      - mongodb-data:/data/db
     networks:
       - monitoring
 
-  data-client:
-    build: ./data-client
-    container_name: data-client
+  influxdb:
+    image: influxdb:latest
+    container_name: influxdb
+    ports:
+      - "8086:8086"
+    environment:
+      - INFLUXDB_ADMIN_USER=admin
+      - INFLUXDB_ADMIN_PASSWORD=admin
+      - INFLUXDB_DB=metrics
+    volumes:
+      - influxdb-data:/var/lib/influxdb
+    networks:
+      - monitoring
+
+  data-tester:
+    build: ./data-tester
+    container_name: data-tester
     depends_on:
-      - grafana
-      - prometheus
-      - http-server
-      - mqtt-broker
+      - postgres
+      - mongodb
+      - influxdb
+    networks:
+      - monitoring
     volumes:
       - ./data:/app/data
-    networks:
-      - monitoring
+
+volumes:
+  postgres-data:
+  mongodb-data:
+  influxdb-data:
 
 networks:
   monitoring:
