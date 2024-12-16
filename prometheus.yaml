@@ -10,7 +10,7 @@ rule_files:
 
 scrape_configs:
   - job_name: 'prometheus'
-    scrape_interval: 5s
+    scrape_interval: 1s
     static_configs:
       - targets: ['prometheus:9090']
 
@@ -28,3 +28,9 @@ scrape_configs:
     scrape_interval: 15s
     static_configs:
       - targets: ['data-exporter:8000']
+
+  - job_name: 'http-server'
+    scrape_interval: 5s
+    static_configs:
+      - targets: [ 'http-server:8001' ]  # Port où les métriques sont exposées
+

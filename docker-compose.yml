@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   prometheus:
     image: prom/prometheus:latest
@@ -25,41 +27,35 @@ services:
     networks:
       - monitoring
 
-  node-exporter-8080:
-    image: prom/node-exporter:latest
-    container_name: node-exporter-8080
+  mqtt-broker:
+    image: eclipse-mosquitto:latest
+    container_name: mqtt-broker
     ports:
-      - "8080:9100"
-    command:
-      - "--web.listen-address=:9100"
+      - "1883:1883"
+      - "9001:9001"
+    volumes:
+      - ./mosquitto.conf:/mosquitto/config/mosquitto.conf
     networks:
       - monitoring
 
-  node-exporter-8081:
-    image: prom/node-exporter:latest
-    container_name: node-exporter-8081
+  http-server:
+    build: ./http-server
+    container_name: http-server
     ports:
-      - "8081:9100"
-    command:
-      - "--web.listen-address=:9100"
+      - "5000:5000"
     networks:
       - monitoring
 
-  node-exporter-8082:
-    image: prom/node-exporter:latest
-    container_name: node-exporter-8082
-    ports:
-      - "8082:9100"
-    command:
-      - "--web.listen-address=:9100"
-    networks:
-      - monitoring
-
-  data-exporter:
-    build: ./data-exporter
-    container_name: data-exporter
-    ports:
-      - "8000:8000"
+  data-client:
+    build: ./data-client
+    container_name: data-client
+    depends_on:
+      - grafana
+      - prometheus
+      - http-server
+      - mqtt-broker
+    volumes:
+      - ./data:/app/data
     networks:
       - monitoring
 
