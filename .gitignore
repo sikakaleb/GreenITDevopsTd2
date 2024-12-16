@@ -35,4 +35,10 @@ build/
 .vscode/
 
 ### Mac OS ###
-.DS_Store
+.DS_Stored
+
+/data/donnees_gros.json
+/data/donnees_petit.json
+/data/donnees_moyen.json
+data/*
+!data/*.json
